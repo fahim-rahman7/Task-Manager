@@ -1,32 +1,96 @@
-const { emailSender } = require("../helpers/mailService");
-const { validateEmailBasic, generateOTP } = require("../helpers/utils");
+const {
+    emailSender
+} = require("../helpers/mailService");
+const {
+    validateEmailBasic,
+    generateOTP
+} = require("../helpers/utils");
 const authSchema = require("../models/authSchema");
 
 const registration = async (req, res) => {
-    const {fullName, email, password} = req.body;
+    const {
+        fullName,
+        email,
+        password
+    } = req.body;
     try {
-        if (!fullName?.trim()) return res.status(400).send({message: "Full Name is Required"})
-        if (!email) return res.status(400).send({message: "Email is Required"})
-        if (!validateEmailBasic(email)) return res.status(400).send({message: "Invalid Email"})
-        if (!password) return res.status(400).send({message: "Password is Required"})
+        if (!fullName?.trim()) return res.status(400).send({
+            message: "Full Name is Required"
+        })
+        if (!email) return res.status(400).send({
+            message: "Email is Required"
+        })
+        if (!validateEmailBasic(email)) return res.status(400).send({
+            message: "Invalid Email"
+        })
+        if (!password) return res.status(400).send({
+            message: "Password is Required"
+        })
 
-        const existingEmail = await authSchema.findOne({email});
-        if (existingEmail) return res.status(400).send({message: "Email Already Exist"})
-            // OTP create 
-        const OTP_NUM = generateOTP() 
+        const existingEmail = await authSchema.findOne({
+            email
+        });
+        if (existingEmail) return res.status(400).send({
+            message: "Email Already Exist"
+        })
+        // OTP create 
+        const OTP_NUM = generateOTP()
 
-        const user = new authSchema({fullName, email, password, otp: OTP_NUM, otpExpiry: new Date(Date.now() + 5 * 60 * 1000)});
-        
+        const user = new authSchema({
+            fullName,
+            email,
+            password,
+            otp: OTP_NUM,
+            otpExpiry: new Date(Date.now() + 5 * 60 * 1000)
+        });
+
         user.save()
 
-        await emailSender({otp: OTP_NUM , subject:"Otp Verification Mail", email})
-        
-        res.status(200).send({message: "Registration Successfully Done, Please verify your Mail"})
-        
+        await emailSender({
+            otp: OTP_NUM,
+            subject: "Otp Verification Mail",
+            email
+        })
+
+        res.status(200).send({
+            message: "Registration Successfully Done, Please verify your Mail"
+        })
+
     } catch (error) {
         console.log(error);
-        res.status(500).send({message: "Internal Server Error"})
+        res.status(500).send({
+            message: "Internal Server Error"
+        })
     }
 }
 
-module.exports = {registration}
+
+const otpVerify = async (req, res) => {
+    const {
+        email,
+        otp
+    } = req.body;
+
+
+    try {
+
+        const user = await authSchema.findOneAndUpdate({
+            email,
+            otp,
+            otpExpiry: {
+                $gt: Date.now()
+            }
+        },
+    {isVerified: true, otp: null},{returnDocument: "after"});
+
+        console.log(user);
+
+    } catch (error) {
+
+    }
+}
+
+module.exports = {
+    registration,
+    otpVerify
+}
