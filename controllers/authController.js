@@ -1,4 +1,5 @@
-const validateEmailBasic = require("../helpers/utils");
+const { emailSender } = require("../helpers/mailService");
+const { validateEmailBasic, generateOTP } = require("../helpers/utils");
 const authSchema = require("../models/authSchema");
 
 const registration = async (req, res) => {
@@ -11,12 +12,16 @@ const registration = async (req, res) => {
 
         const existingEmail = await authSchema.findOne({email});
         if (existingEmail) return res.status(400).send({message: "Email Already Exist"})
+            // OTP create 
+        const OTP_NUM = generateOTP() 
 
-        const user = new authSchema({fullName, email, password});
+        const user = new authSchema({fullName, email, password, otp: OTP_NUM, otpExpiry: new Date(Date.now() + 5 * 60 * 1000)});
         
         user.save()
 
-        res.status(200).send({message: "Registration Successfully Done"})
+        await emailSender({otp: OTP_NUM , subject:"Otp Verification Mail", email})
+        
+        res.status(200).send({message: "Registration Successfully Done, Please verify your Mail"})
         
     } catch (error) {
         console.log(error);
