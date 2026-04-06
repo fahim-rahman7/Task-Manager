@@ -14,7 +14,7 @@ const registration = async (req, res) => {
         password
     } = req.body;
     try {
-        if (!fullName?.trim()) return res.status(400).send({
+        if (!fullName ?.trim()) return res.status(400).send({
             message: "Full Name is Required"
         })
         if (!email) return res.status(400).send({
@@ -80,8 +80,12 @@ const otpVerify = async (req, res) => {
             otpExpiry: {
                 $gt: Date.now()
             }
-        },
-    {isVerified: true, otp: null},{returnDocument: "after"});
+        }, {
+            isVerified: true,
+            otp: null
+        }, {
+            returnDocument: "after"
+        });
 
         console.log(user);
 
@@ -90,7 +94,43 @@ const otpVerify = async (req, res) => {
     }
 }
 
+
+const login = async (req, res) => {
+    const {
+        email,
+        password
+    } = req.body;
+
+    try {
+        const user = await authSchema.findOne({
+            email
+        });
+        if (!user) return res.status(400).send({
+            message: "Invalid Credential"
+        })
+        if (!user.isVerified) return res.status(400).send({
+            message: "Email is not Verified"
+        });
+        const matchPass = await user.comparePassword(password)
+
+        if (!matchPass) return res.status(400).send({
+            message: "Invalid Credential"
+        })
+
+        res.status(200).send({
+            message: "Login Successfully Done."
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            message: "Internal Server Error"
+        })
+
+    }
+}
+
 module.exports = {
     registration,
-    otpVerify
+    otpVerify,
+    login
 }
