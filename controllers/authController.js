@@ -3,7 +3,8 @@ const {
 } = require("../helpers/mailService");
 const {
     validateEmailBasic,
-    generateOTP
+    generateOTP,
+    generateToken
 } = require("../helpers/utils");
 const authSchema = require("../models/authSchema");
 
@@ -88,7 +89,13 @@ const otpVerify = async (req, res) => {
         });
 
         console.log(user);
+        if (!user) return res.status(400).send({
+            message: "Otp is not correct"
+        })
 
+        res.status(200).send({
+            message: "Otp is Verified"
+        })
     } catch (error) {
 
     }
@@ -117,6 +124,13 @@ const login = async (req, res) => {
             message: "Invalid Credential"
         })
 
+        const accessToken = generateToken({
+            id: user._id,
+            email: user.email
+        })
+        console.log("accessToken", accessToken);
+        res.cookie("accessToken", accessToken);
+
         res.status(200).send({
             message: "Login Successfully Done."
         })
@@ -129,8 +143,23 @@ const login = async (req, res) => {
     }
 }
 
+const userProfile = async (req, res) => {
+    try {
+        const userData = await authSchema.findOne({_id:req.user.id}).select("fullName email avatar")
+       
+        if(!userData) return res.status(401).send({message: "unauthorized user"})
+
+        res.status(200).send({message: "User Profile"})
+    } catch (error) {
+        res.status(500).send({
+            message: "Internal Server Error"
+        })
+    }
+}
+
 module.exports = {
     registration,
     otpVerify,
-    login
+    login,
+    userProfile
 }
