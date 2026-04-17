@@ -8,6 +8,7 @@ const {
 } = require("../helpers/utils");
 const authSchema = require("../models/authSchema");
 
+const { cloudinaryService } = require("../helpers/cloudinaryService");
 const registration = async (req, res) => {
     const {
         fullName,
@@ -156,10 +157,22 @@ const userProfile = async (req, res) => {
         })
     }
 }
+const updateProfile = async (req, res) => {
+    // const {fullName} = req.body;
 
+    try {
+        console.log(req.file);
+    const avatar = await cloudinaryService({mimetype:req.file.mimetype,imgBuffer:req.file.buffer})
+    res.send(avatar)
+ 
+    } catch (error) {
+        console.log(error);
+    }
+}
 module.exports = {
     registration,
-    otpVerify,
+    otpVerify, 
     login,
-    userProfile
+    userProfile,
+    updateProfile
 }
