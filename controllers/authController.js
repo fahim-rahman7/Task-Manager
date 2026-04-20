@@ -7,8 +7,8 @@ const {
     generateToken
 } = require("../helpers/utils");
 const authSchema = require("../models/authSchema");
+const { UploadToCloudinary, deleteFromCloudinary } = require("../helpers/cloudinaryService");
 
-const { cloudinaryService } = require("../helpers/cloudinaryService");
 const registration = async (req, res) => {
     const {
         fullName,
@@ -158,12 +158,22 @@ const userProfile = async (req, res) => {
     }
 }
 const updateProfile = async (req, res) => {
-    // const {fullName} = req.body;
-
+    const {fullName} = req.body;
+    const userId = req.user.id
     try {
-        console.log(req.file);
-    const avatar = await cloudinaryService({mimetype:req.file.mimetype,imgBuffer:req.file.buffer})
-    res.send(avatar)
+    
+    const userData = await authSchema.findOne({_id: userId })
+    if (fullName && fullName.trim()) {
+        userData.fullName = fullName;
+    }
+
+    if (req.file) {
+        const avatarUrl = await UploadToCloudinary({mimetype:req.file.mimetype,bufferString:req.file.buffer})
+        deleteFromCloudinary(userData.avatar)
+        userData.avatar =  avatarUrl
+    }
+   userData.save()
+    res.send("Profile Updated") 
  
     } catch (error) {
         console.log(error);
