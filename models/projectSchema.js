@@ -8,7 +8,6 @@ const taskSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        unique: true,
         trim: true
     },
     description: {
@@ -19,7 +18,7 @@ const taskSchema = new mongoose.Schema({
       {
         type: mongoose.Types.ObjectId,
         ref: "user"
-    },
+    },  
 ],
     priority: {
         type: String,
@@ -31,12 +30,18 @@ const taskSchema = new mongoose.Schema({
         default: false
     }
 })
+
+
 const projectSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        unique: true,
         trim: true
+    },
+    slug: {
+        type: String,
+        required: true,
+        unique: true
     },
     description: {
         type: String,

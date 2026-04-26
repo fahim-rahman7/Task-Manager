@@ -14,5 +14,19 @@ const generateToken = (users)=> {
   return token;
 }
 
+function generateSlug(title) {
+  if (!title) return '';
 
-module.exports = {validateEmailBasic, generateOTP, generateToken};
+  return title
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')           // Decompose accented characters (e.g., é -> e + ́)
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks
+    .replace(/\s+/g, '-')       // Replace spaces with hyphens
+    .replace(/[^\w-]+/g, '')    // Remove all non-word characters (except hyphens)
+    .replace(/-+/g, '-')        // Replace multiple hyphens with a single hyphen
+    .replace(/^-+|-+$/g, '');   // Remove leading and trailing hyphens
+}
+
+module.exports = {validateEmailBasic, generateOTP, generateToken, generateSlug};
