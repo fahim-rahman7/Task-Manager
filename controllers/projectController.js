@@ -75,6 +75,7 @@ const addMemberToProject = async (req, res) => {
         })
 
         const existingMember = await projectSchema.findOne({
+            _id: projectId,
             $or:[
                 {author: existingEmail._id},
                 {members:  existingEmail._id}
@@ -103,8 +104,46 @@ const addMemberToProject = async (req, res) => {
 }
 
 
+const addTaskToProject = async (req, res) => {
+    const {title, description, assignedTo, priority, projectId} = req.body;
+
+    try {
+        if(!title) return res.status(400).send({message: "Title is required"})
+        if(!description) return res.status(400).send({message: "description is required"})
+        if(!priority) return res.status(400).send({message: "Title is required"})
+        if(!["High", "Medium", "Low"].includes(priority)) return res.status(400).send({message: "Invalid priority value"})
+        if(!projectId) return res.status(400).send({message: "projectId is required"})
+        if(assignedTo && !Array.isArray(assignedTo)) return res.status(400).send({message: "invalid assigned value"})
+        
+        if(assignedTo){
+            for (const userId of assignedTo) {
+                const existingMember = await projectSchema.findOne(
+                    {_id: projectId, 
+                    
+                      $or:[
+                        {author: userId},
+                        {members: userId}
+                    ],
+                })
+                if(!existingMember) return res.status(400).send({message: "user does not exist in project"})
+            }
+            
+        }
+        const projectData = await projectSchema.findOneAndUpdate({_id: projectId}, {tasks: {title, description, assignedTo, priority}}, {returnDocument: "after"})
+        if(!projectData) return res.status(400).send({message: "Invalid user"})
+
+        res.status(200).send({message: "Task added successfully", projectData})
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            message: "Internal server error"
+        })
+    }
+}
+
 module.exports = {
     createProject,
     projectList,
-    addMemberToProject
+    addMemberToProject,
+    addTaskToProject
 }

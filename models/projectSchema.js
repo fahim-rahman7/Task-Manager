@@ -12,14 +12,13 @@ const taskSchema = new mongoose.Schema({
     },
     description: {
         type: String,
+        required: true,
         trim: true,
     },
-    assignedTo: [
-      {
+    assignedTo: [{
         type: mongoose.Types.ObjectId,
         ref: "user"
-    },  
-],
+    }, ],
     priority: {
         type: String,
         default: "High",
@@ -51,14 +50,12 @@ const projectSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: "user",
     },
-    members: [
-      {
+    members: [{
         type: mongoose.Types.ObjectId,
         ref: "user"
-    },
-],
+    }, ],
     tasks: [taskSchema]
-    
+
 })
 
 module.exports = mongoose.model("project", projectSchema)
