@@ -158,7 +158,7 @@ const userProfile = async (req, res) => {
        
         if(!userData) return res.status(401).send({message: "unauthorized user"})
 
-        res.status(200).send({message: "User Profile"})
+        res.status(200).send({message: "User Profile", userData})
     } catch (error) {
         res.status(500).send({
             message: "Internal Server Error"

@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useLoginMutation } from "../services/api";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [loginUser] = useLoginMutation();
   const [form, setForm] = useState({
     email: "",
@@ -55,10 +56,13 @@ const Login = () => {
     }
     console.log("Login successfully");
 
+    setTimeout(() => {
+      navigate("/")
+    }, 3000);
   };
 
   return (
-    <div className="h-screen flex items-center justify-center">
+    <div className="h-screen flex items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
         className="bg-white flex flex-col rounded-xl shadow space-y-4 max-w-md mx-auto p-6 w-full"

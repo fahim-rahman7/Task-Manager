@@ -46,7 +46,7 @@ const projectList = async (req, res) => {
                 $regex: search || "",
                 $options: "i"
             }
-        }).populate("author", "avatar fullName")
+        }).populate("author members", "avatar fullName").select("title description tasks._id")
         if (!project) {
             res.status(400).send({
                 message: "No project found"
@@ -87,7 +87,7 @@ const addMemberToProject = async (req, res) => {
         const project = await projectSchema.findOneAndUpdate({
             _id: projectId
         }, {
-            members: existingEmail._id
+            $push: { members: existingEmail._id }
         }, {
             new: true
         })

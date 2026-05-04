@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 import Registration from './pages/Registration'
 import Login from './pages/Login'
 import OtpVerification from './pages/OtpVerification'
+import Dashboard from './pages/Dashboard'
 
 const App = () => {
   return (
@@ -11,6 +12,7 @@ const App = () => {
       <Route path="/registration" element={<Registration />} />
       <Route path="/login" element={<Login />} />
       <Route path="/otp-verify" element={<OtpVerification />} />
+      <Route path="/" element={<Dashboard />} />
     </Routes>
  </BrowserRouter>
   )

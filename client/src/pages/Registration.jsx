@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useRegistrationMutation } from "../services/api";
 
 const Registration = () => {
+  const navigate = useNavigate();
   const [registerUser] = useRegistrationMutation();
   const [form, setForm] = useState({
     fullName: "",
@@ -33,8 +34,8 @@ const Registration = () => {
 
     if (!form.password) {
       newErrors.password = "Password is required";
-    } else if (form.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (form.password.length < 5) {
+      newErrors.password = "Password must be at least 5 characters";
     }
 
     return newErrors;
@@ -59,11 +60,11 @@ const Registration = () => {
         return setErrors({ password: res.error.data.message });
     }
     console.log("Registration successfully");
-    
+    navigate("/otp-verify")
   };
 
   return (
-    <div className="h-screen flex items-center justify-center">
+    <div className="h-screen flex items-center justify-center bg-gray-100">
       <form
         onSubmit={handleSubmit}
         className="bg-white flex flex-col rounded-xl shadow space-y-4 max-w-md mx-auto p-6 w-full"
