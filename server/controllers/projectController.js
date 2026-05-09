@@ -38,28 +38,62 @@ const projectList = async (req, res) => {
         console.log(search);
         const project = await projectSchema.find({
             // author: req.user.id,
-            $or:[
-                {author: req.user.id},
-                {members: req.user.id}
+            $or: [{
+                    author: req.user.id
+                },
+                {
+                    members: req.user.id
+                }
             ],
             title: {
                 $regex: search || "",
                 $options: "i"
             }
-        }).populate("author members", "avatar fullName").select("title description tasks._id")
+        }).populate("author members", "avatar fullName").select("title description tasks._id slug")
         if (!project) {
             res.status(400).send({
                 message: "No project found"
             })
         }
         res.status(200).send(project)
-    } catch (error) {  
+    } catch (error) {
         res.status(500).send({
             message: "Internal server error"
         })
     }
 }
 
+const projectDetails = async (req, res) => {
+    const {
+        slug
+    } = req.params;
+
+    try {
+        const project = await projectSchema.findOne({
+            $or: [{
+                    author: req.user.id
+                },
+                {
+                    members: req.user.id
+                }
+            ],
+            slug
+        }).populate("author members tasks.assignedTo", "avatar fullName")
+
+        if (!project) {
+            res.status(404).send({
+                message: "Not Found"
+            })
+        }
+        res.status(200).send(project)
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            message: "Internal server error"
+        })
+    }
+}
 const addMemberToProject = async (req, res) => {
     const {
         email,
@@ -76,9 +110,12 @@ const addMemberToProject = async (req, res) => {
 
         const existingMember = await projectSchema.findOne({
             _id: projectId,
-            $or:[
-                {author: existingEmail._id},
-                {members:  existingEmail._id}
+            $or: [{
+                    author: existingEmail._id
+                },
+                {
+                    members: existingEmail._id
+                }
             ],
         })
         if (existingMember) return res.status(400).send({
@@ -87,7 +124,9 @@ const addMemberToProject = async (req, res) => {
         const project = await projectSchema.findOneAndUpdate({
             _id: projectId
         }, {
-            $push: { members: existingEmail._id }
+            $push: {
+                members: existingEmail._id
+            }
         }, {
             new: true
         })
@@ -95,7 +134,9 @@ const addMemberToProject = async (req, res) => {
             message: "Invalid request"
         })
 
-        res.status(200).send({message: "Member added"})
+        res.status(200).send({
+            message: "Member added"
+        })
     } catch (error) {
         res.status(500).send({
             message: "Internal server error"
@@ -105,34 +146,75 @@ const addMemberToProject = async (req, res) => {
 
 
 const addTaskToProject = async (req, res) => {
-    const {title, description, assignedTo, priority, projectId} = req.body;
+    const {
+        title,
+        description,
+        assignedTo,
+        priority,
+        projectId
+    } = req.body;
 
     try {
-        if(!title) return res.status(400).send({message: "Title is required"})
-        if(!description) return res.status(400).send({message: "description is required"})
-        if(!priority) return res.status(400).send({message: "Title is required"})
-        if(!["High", "Medium", "Low"].includes(priority)) return res.status(400).send({message: "Invalid priority value"})
-        if(!projectId) return res.status(400).send({message: "projectId is required"})
-        if(assignedTo && !Array.isArray(assignedTo)) return res.status(400).send({message: "invalid assigned value"})
-        
-        if(assignedTo){
+        if (!title) return res.status(400).send({
+            message: "Title is required"
+        })
+        if (!description) return res.status(400).send({
+            message: "description is required"
+        })
+        if (!priority) return res.status(400).send({
+            message: "Title is required"
+        })
+        if (!["High", "Medium", "Low"].includes(priority)) return res.status(400).send({
+            message: "Invalid priority value"
+        })
+        if (!projectId) return res.status(400).send({
+            message: "projectId is required"
+        })
+        if (assignedTo && !Array.isArray(assignedTo)) return res.status(400).send({
+            message: "invalid assigned value"
+        })
+
+        if (assignedTo) {
             for (const userId of assignedTo) {
-                const existingMember = await projectSchema.findOne(
-                    {_id: projectId, 
-                    
-                      $or:[
-                        {author: userId},
-                        {members: userId}
+                const existingMember = await projectSchema.findOne({
+                    _id: projectId,
+
+                    $or: [{
+                            author: userId
+                        },
+                        {
+                            members: userId
+                        }
                     ],
                 })
-                if(!existingMember) return res.status(400).send({message: "user does not exist in project"})
+                if (!existingMember) return res.status(400).send({
+                    message: "user does not exist in project"
+                })
             }
-            
-        }
-        const projectData = await projectSchema.findOneAndUpdate({_id: projectId}, {tasks: {title, description, assignedTo, priority}}, {returnDocument: "after"})
-        if(!projectData) return res.status(400).send({message: "Invalid user"})
 
-        res.status(200).send({message: "Task added successfully", projectData})
+        }
+        const projectData = await projectSchema.findOneAndUpdate({
+            _id: projectId
+        }, {
+            $push: {
+                tasks: {
+                    title,
+                    description,
+                    assignedTo,
+                    priority
+                }
+            }
+        }, {
+            returnDocument: "after"
+        })
+        if (!projectData) return res.status(400).send({
+            message: "Invalid user"
+        })
+
+        res.status(200).send({
+            message: "Task added successfully",
+            projectData
+        })
     } catch (error) {
         console.log(error);
         res.status(500).send({
@@ -141,9 +223,49 @@ const addTaskToProject = async (req, res) => {
     }
 }
 
+const updateTaskStatus = async (req, res) => {
+    const { projectId, taskId, status } = req.body;
+
+    try {
+        const project = await projectSchema.findOneAndUpdate(
+            {
+                _id: projectId,
+                "tasks._id": taskId
+            },
+            {
+                $set: {
+                    "tasks.$.status": status
+                }
+            },
+            {
+                new: true
+            }
+        );
+
+        if (!project) {
+            return res.status(404).send({
+                message: "Task not found"
+            });
+        }
+
+        res.status(200).send({
+            message: "Task status updated",
+            project
+        });
+
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).send({
+            message: "Internal server error"
+        });
+    }
+};
 module.exports = {
     createProject,
     projectList,
+    projectDetails,
     addMemberToProject,
-    addTaskToProject
+    addTaskToProject,
+    updateTaskStatus,
 }

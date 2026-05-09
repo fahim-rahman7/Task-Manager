@@ -4,7 +4,7 @@ const UserAvatarGroup = ({ members }) => {
       {members?.map((user) => (
         <div
           key={user._id}
-          className="w-8 h-8 rounded-full overflow-hidden text-blue-600 bg-gray-300 border-2 border-white grid place-items-center font-bold text-sm leading-none"
+          className="w-7 h-7 rounded-full overflow-hidden text-blue-600 bg-gray-300 border-2 border-white grid place-items-center font-bold text-sm leading-none"
         >
           {user?.avatar ? (
             <img

@@ -12,7 +12,7 @@ const Button = ({
   
 }) => {
   const baseStyle =
-    "px-5 py-2 rounded-lg font-medium transition duration-200 focus:outline-none";
+    "px-5 py-2 rounded-lg font-medium transition duration-200 focus:outline-none cursor-pointer";
 
   const variants = {
     primary: "bg-[#001F54] text-white hover:bg-[#00163d]",

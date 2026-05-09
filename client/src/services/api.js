@@ -33,12 +33,29 @@ export const apiService = createApi({
         getProjectList: build.query({
             query: () => "/project/list",
         }),
+        getProjectDetails: build.query({
+            query: (slug) => `/project/details/${slug}`,
+        }),
 
         createProject: build.mutation({
             query: (projectData) => ({
                 url: "/project/create",
                 method: "POST",
                 body: projectData,
+            }),
+        }),
+        addNewTaskToProject: build.mutation({
+            query: (taskData) => ({
+                url: "/project/addtask",
+                method: "POST",
+                body: taskData,
+            }),
+        }),
+        updateTaskStatus: build.mutation({
+            query: (data) => ({
+                url: "/project/taskStatus",
+                method: "PATCH",
+                body: data
             }),
         }),
     }),
@@ -49,5 +66,8 @@ export const {
     useLoginMutation,
     useGetProfileQuery,
     useGetProjectListQuery,
+    useGetProjectDetailsQuery,
     useCreateProjectMutation,
+    useAddNewTaskToProjectMutation,
+    useUpdateTaskStatusMutation,
 } = apiService
